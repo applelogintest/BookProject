@@ -10,20 +10,25 @@ import org.jsoup.select.Elements;
 public class BookManager {
 	public void bookAllData()
 	{
-		
+		//Document detailDoc;
+		BookDAO dao=new BookDAO();
+		int no=1;
 		for(int i=1; i<=20; i++){
 			try{
 				Document doc=Jsoup.connect("https://www.aladin.co.kr/shop/common/wbest.aspx?BestType=MonthlyBest&BranchType=1&CID=0&page="+i+"&cnt=1000&SortOrder=1").get();
+				
 				Elements listSize=doc.select(".ss_book_box");
 				for(int j=0; j<listSize.size(); j++)
 				{
+					try{
+						
 					BookVO vo=new BookVO();
 					
 					Element titleElement=listSize.select(".bo3").get(j);
 					Element posterElement=listSize.select(".i_cover").get(j);
 					
 					int infoSize=listSize.select(".ss_book_list:eq(0) ul").get(j).childNodeSize();
-					System.out.println("infoSize :"+infoSize);
+					//System.out.println("infoSize :"+infoSize);
 					
 					Element infoElement;
 					
@@ -34,9 +39,12 @@ public class BookManager {
 					else
 					{
 						infoElement=listSize.select(".ss_book_list li:eq(2)").get(j);
+						
 					}
 					
 					Element priceElement=listSize.select(".ss_book_list ul span b").get(j);
+					
+					/*String link=elementAttrToString(titleElement,"href");*/
 					
 					String title=elementToString(titleElement);
 					String poster=elementAttrToString(posterElement, "src");
@@ -44,19 +52,31 @@ public class BookManager {
 					StringTokenizer st=new StringTokenizer(info, "|");
 					String price=elementToString(priceElement);
 					
+					//detailDoc=Jsoup.connect(link).get();
+					
+					vo.setNo(no);
 					vo.setTitle(title);
 					vo.setPoster(poster);
-					vo.setAuthor(nextTokenException(st));
-					vo.setPublisher(nextTokenException(st));
-					vo.setRegdate(nextTokenException(st));
+					vo.setAuthor(st.nextToken());
+					vo.setPublisher(st.nextToken());
+					vo.setRegdate(st.nextToken());
 					vo.setPrice(price);
 					
-					System.out.println("title : "+vo.getTitle());
+					
+					System.out.println("no : "+no);
+				/*	System.out.println("title : "+vo.getTitle());
 					System.out.println("poster : "+vo.getPoster());
 					System.out.println("author : "+vo.getAuthor());
 					System.out.println("publisher : "+vo.getPublisher());
 					System.out.println("regdate : "+vo.getRegdate());
-					System.out.println("price : "+vo.getPrice());
+					System.out.println("price : "+vo.getPrice());*/
+					no++;
+					
+					dao.bookInsert(vo);
+					
+					}catch (Exception ex) {
+						ex.printStackTrace();
+					}
 					
 				}
 			}catch (Exception ex) {
@@ -72,7 +92,7 @@ public class BookManager {
 		try{
 			result=st.nextToken();
 		}catch (Exception ex) {
-			System.out.println("result : null");
+			//System.out.println("result : null");
 		}
 		return result;
 				
@@ -83,7 +103,7 @@ public class BookManager {
 		try{
 			res=e.text();
 		}catch (Exception ex) {
-			System.out.println("elementToString Error"+ex.getMessage());
+			//System.out.println("elementToString Error"+ex.getMessage());
 		}
 		return res;
 	}
